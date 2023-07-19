@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>fPASS: An R package for Power and Sample Size analysis (PASS) for Projection-based Two-Sample test for functional data.</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">fPASS: An R package for Power and Sample
+Size analysis (PASS) for Projection-based Two-Sample test for functional
+data.</h1>
+
+
+
+<p>This document will present a elaborate understanding of the
+<code>fPASS</code> R package and its capabilities. First we need to load
+the current development version of the package using the following code.
+The package is designed to conduct for Power and Sample Size analysis
+(PASS) for Projection-based Two-Sample test for functional data. Please
+see <a href="https://doi.org/10.1214/21-EJS1802">Wang (2021)</a> and <a href="https://arxiv.org/abs/2302.05612">Koner and Luo (2023)</a> for the
+details of the testing procedure and its advantage over the current
+state-of-the-art testing procedures used for longitudinal data such as
+mixed model and GEE.</p>
+<div id="installation" class="section level2">
+<h2>Installation</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Install development version from GitHub</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;SalilKoner/fPASS&quot;</span>, <span class="at">build_vignettes =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+</div>
+<div id="usage" class="section level2">
+<h2>Usage</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(fPASS)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">library</span>(nlme)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">library</span>(face)</span></code></pre></div>
+<p>The key function to use for finding the power and sample size (PASS)
+for the test is <code>fPASS::PASS_Proj_Test_ufDA()</code>. In the
+following, we will see how the function can be used to conduct PASS for
+the Projection-based test for longitudinal and functional data under
+different covariance structure in order to design a randomized clinical
+trials (RCT). We will present the examples of using the function with
+different case studies.</p>
+<div id="case-study-calculating-pass-analysis-for-designing-rct-with-longitudinal-data-with-a-specific-visit-times." class="section level3">
+<h3>Case study: Calculating PASS analysis for designing RCT with
+Longitudinal data with a specific visit times.</h3>
+<p>Suppose that we want to conduct a clinical trial to test the efficacy
+of a treatment effect against placebo, where the visit times for each
+subjects are at baseline, 3 months, 6 months, and every 6 months
+thereafter for 24 months. Assume that for each visit (except for the
+baseline), there is an window of 15 days around the stipulated visit
+time when the patients can appear to the clinic. This means that, a
+patient can come to the clinic for third visit around <span class="math inline">\(5.5 - 6.5\)</span> months from baseline. Assuming
+that the higher the response, the better is the treatment, it is
+hypothesized that the effect size (mean to variance ratio) between the
+treatment and placebo will be <span class="math inline">\(1\)</span>
+unit each year, and the treatment effect follows a linear trend.
+Further, it is assumed that the longitudinal response trajectory for
+each subject has a marginal standard deviation about 5 units at each
+visit time and assumes a dying correlation which can be characterized a
+conditional auto regressive process with correlation parameter <span class="math inline">\(0.5\)</span>. Suppose that after collection of
+data, we want to use the <a href="https://doi.org/10.1214/21-EJS1802">Two-sample projection-based
+test by Wang (2021)</a> to assess the treatment efficacy. Assuming that
+we can have equal number of subjects in each of the treatment and the
+placebo group, we want to find the minimum sample size required to test
+the treatment efficacy with a power of <span class="math inline">\(80\%\)</span> at a significance level of <span class="math inline">\(5\%\)</span>, using the routine
+<code>fPASS::PASS_Proj_Test_ufDA()</code>.</p>
+<div id="argument-specifiction-for-fpasspass_proj_test_ufda" class="section level4">
+<h4>Argument specifiction for
+<code>fPASS::PASS_Proj_Test_ufDA()</code></h4>
+<p>The argument of the function can be obtained by running
+<code>?fPASS::PASS_Proj_Test_ufDA()</code> in R. The key arguments of
+are <code>mean_diff_fnm</code> denoting the group difference function,
+<code>obs.design</code> specifying the observation design and
+<code>cov.par</code> specifying the covariance structure of the latent
+trajectory. We will demonstrate how to supply each of the parameters in
+the function from the statement of the problem.</p>
+<ul>
+<li><code>obs.design</code> and <code>nobs_per_subj</code> : The number
+of observation points for each subject are pre-determined, and they are
+not randomly varying among each other. This constitutes that it falls
+under <code>longitudinal</code> design, and the visit times are <span class="math inline">\(0, 3, 6, 12, 18\)</span> and <span class="math inline">\(24\)</span> months with a window of <span class="math inline">\(0.5\)</span> months for each visit other than
+baseline. The <code>obs.design</code> argument should be set as</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>obs.design <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="st">&quot;design&quot;</span> <span class="ot">=</span> <span class="st">&quot;longitudinal&quot;</span>,</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>                  <span class="st">&quot;visit.schedule&quot;</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">6</span>,<span class="dv">12</span>,<span class="dv">18</span>,<span class="dv">24</span>), <span class="co"># pre-determined visit times, other than baseline</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>                  <span class="st">&quot;visit.window&quot;</span> <span class="ot">=</span> <span class="fl">0.5</span>) <span class="co"># visit window</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>nobs_per_subj <span class="ot">&lt;-</span> <span class="fu">length</span>(obs.design<span class="sc">$</span>visit.schedule) <span class="sc">+</span> <span class="dv">1</span> <span class="co"># number of observation per subject is 6.</span></span></code></pre></div>
+<ul>
+<li><code>cov.par</code> and <code>cov.type</code> : The conditional
+auto regressive process with correlation parameter <span class="math inline">\(0.5\)</span> can be characterized by the
+<code>nlme::corCAR1()</code> structure available in
+<code>nlme::corClasses</code>. Therefore, we can characterize the
+correlation as</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># The function will internally create a data set</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co"># and a factor variable Subject denoting subject id.</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co"># You can change time and Subject by any other name as well.</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>cor.str <span class="ot">&lt;-</span> nlme<span class="sc">::</span><span class="fu">corCAR1</span>(<span class="fl">0.5</span>, <span class="at">form =</span> <span class="sc">~</span> time <span class="sc">|</span> Subject);</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co"># The marginal sd at each time-point is assumed to be 5. </span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>cov.par  <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="st">&quot;var&quot;</span> <span class="ot">=</span> <span class="dv">25</span>, <span class="st">&quot;cor&quot;</span> <span class="ot">=</span> cor.str) </span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co"># We must set cov.type = &quot;ST&quot; for any covariance </span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co"># structure belonging to nlme::corClasses. </span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>cov.type <span class="ot">&lt;-</span> <span class="st">&quot;ST&quot;</span></span></code></pre></div>
+<ul>
+<li><code>mean_diff_fnm</code> : Assuming that the group difference
+function has a linear trend, and that the group difference is 1 unit
+every year, which means the group difference is 4 unit after two years
+(24 months). As mentioned in the details in the argument section,
+internally, the function scales the specified visit times into <span class="math inline">\([0,1]\)</span>, so that baseline is 0 and 24
+months is 1, therefore, the mean function can be written as</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>mean_diff_fn  <span class="ot">&lt;-</span> <span class="cf">function</span>(t){<span class="dv">2</span><span class="sc">*</span>t}</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>mean_diff_fnm <span class="ot">&lt;-</span> <span class="st">&quot;mean_diff_fn&quot;</span> <span class="co"># the name of mean difference function needs to</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>                                <span class="co"># be specified with the argument. </span></span></code></pre></div>
+<ul>
+<li><code>missing_type</code> and <code>missing_percent</code> : We
+assume no missing observation at each visit, so we will set the missing
+value related parameters as follows:</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>missing_type <span class="ot">&lt;-</span> <span class="st">&quot;nomiss&quot;</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>missing_percent <span class="ot">&lt;-</span> <span class="dv">0</span> <span class="co"># Has be to a number between 0 and 0.8</span></span></code></pre></div>
+<ul>
+<li><code>alloc.ratio</code> : Assuming that we have an equal allocation
+ratio of the samples in each group,</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>alloc.ratio <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>)</span></code></pre></div>
+<ul>
+<li><code>target.power</code> and <code>sig.level</code> : We want to
+find the sample size required to achieve a power of <span class="math inline">\(80\%\)</span> of test at significance level <span class="math inline">\(5\%\)</span>,</li>
+</ul>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>target.power <span class="ot">&lt;-</span> <span class="fl">0.8</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>sig.level  <span class="ot">&lt;-</span> <span class="fl">0.05</span></span></code></pre></div>
+<ul>
+<li><code>eval_SS</code> : The number of independent and identically
+distributed (i.i.d) replication of subjects based on which the
+eigencomponents of the covariance process will be estimated empirically.
+This should be set as a large number in order to correctly estimate the
+true number of eigenfunctions and to get enough precision on the
+estimated eigencomponents. Setting a small value of <code>eval_SS</code>
+might lead to incorrect detection of large number of eigenfunctions, and
+then the power of the projection-based test will incorrectly inflated
+because the dimension and the magnitude of projection-vector gets
+arbitrarily large, as a result of projecting the mean difference
+function on additionally detected eigenfunctions (possibly with very
+small eigenvalues). Users must remember that the <strong>computation
+time of the function is directly proportional to the size of
+<code>eval_SS</code>, so they must expect that the run time will be
+higher if <code>eval_SS</code> is larger, especially when
+<code>fpca.method</code> is set as ‘face’</strong>, which is described
+next item.</li>
+</ul>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>eval_SS <span class="ot">&lt;-</span> <span class="dv">5000</span></span></code></pre></div>
+<ul>
+<li><code>fpca_method</code> : The module for functional principal
+component analysis that will be used to estimate the eigencomponents,
+can be any one of ‘fpca.sc’, in which case <code>fPASS::fpca.sc()</code>
+to be used or ‘face’ for <code>face::face.sparse</code> function to be
+used as the primary eigenfunction estimation routine. Note that,
+<code>fPASS::fpca.sc()</code> is just a copy of
+<code>refund::fpca.sc()</code> routine, except here the
+<code>shrinkage</code> scores (Yao et. al. 2005, JASA) are correctly
+estimated, and the issue of <code>NA</code> value for the scores when
+the measurement error variance are estimated to be zero, are
+corrected.</li>
+</ul>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>fpca_method <span class="ot">&lt;-</span> <span class="st">&quot;fpca.sc&quot;</span></span></code></pre></div>
+<ul>
+<li><code>sigma2.e</code> : Set a small but non-zero measurement error
+to ensure nugget effect and stability in inversion of covariance</li>
+</ul>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>sigma2.e <span class="ot">&lt;-</span> <span class="fl">0.001</span></span></code></pre></div>
+<ul>
+<li><code>fpca_optns</code> : The argument <code>fpca_optns</code> must
+be a named list with elements that could specified as arguments of
+either of <code>fPASS::fpca.sc()</code> function or
+<code>face::face.sparse()</code> depending on the choice of the argument
+<code>fpca_optns</code>. For example, the default value of
+<code>pve</code> argument is <span class="math inline">\(0.99\)</span>,
+but the user can overwrite by setting it as follows. See the details of
+argument in the help page for what are compatible names for the elements
+in the list. A higher value of percentage of variation explained might
+lead to detection of extra eigenfunctions with close to zero
+eigenvalues, which might lead to inflated power of the test for fixed
+sample size.</li>
+</ul>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>fpca_optns  <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="st">&quot;pve&quot;</span> <span class="ot">=</span> <span class="fl">0.95</span>) </span></code></pre></div>
+<ul>
+<li><code>mean_diff_add_args</code> : The user can specify any
+additional parameter in form of a named list that might need to be
+specified in the mean different function specified in the argument
+<code>mean_diff_fnm</code>. In this case, there is nothing, so it will
+be specified as an empty list as follows:</li>
+</ul>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>mean_diff_add_args  <span class="ot">&lt;-</span> <span class="fu">list</span>() </span></code></pre></div>
+<ul>
+<li><code>nWgrid</code> : The length of grid points used to estimate the
+eigenfunction and to approximately compute the projection <span class="math inline">\(\int \mu_1(t) - \mu_2(t)\phi_k(t) dt\)</span>. We
+keep the default value of <code>nWgrid</code>, <span class="math inline">\(201\)</span>.</li>
+</ul>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>nWgrid <span class="ot">&lt;-</span> <span class="dv">201</span></span></code></pre></div>
+<ul>
+<li><code>nsim</code> : The number of samples to be generated from the
+alternate distribution of the Hotelling <span class="math inline">\(T^2\)</span> statistic to accurate compute the
+power. The default value is set at 10000, but the user can change it in
+the function. In our example, we have used <code>nsim</code><span class="math inline">\(=1000\)</span> for faster computation of the
+vignette.</li>
+</ul>
+<div id="distribution-of-minimum-sample-size-using-fpassfpca.sc-function" class="section level5">
+<h5>Distribution of minimum sample size using
+<code>fPASS::fpca.sc()</code> function:</h5>
+<p>Now that we have explained how to specify each and every arguments of
+<code>fPASS::PASS_Proj_Test_ufDA()</code> function, we will compute the
+minimum sample size required. However, as the testing procedure
+internally computes the eigenfunctions based on large number of samples
+and then uses the estimated eigenfunctions to compute the PASS, the
+computed power and the minimum sample size will be different due to the
+fact that the estimated eigenfunctions are different at each run because
+of sampling variation. Therefore, it is important to run the function
+<code>fPASS::PASS_Proj_Test_ufDA()</code> for few iterations to see how
+the sampling variation affects the computed power or sample size. In
+this example, we run the same function in parallel for about 10 times,
+and present the percentiles of the estimated sample size. It is
+recommended to run the the function at least about 50 to 100 times and
+use the median of these computed sample sizes obtained after a
+reasonable number of iteration, as a point estimate of the minimum
+sample size and the interquartile range (IQR) as a valid measure of
+range of the sample size that could be considered. From a practical
+perspective, depending on the budget of the trial, one can choose the
+minimum number of subjects that will be enrolled for the trial based on
+the value of IQR.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">library</span>(foreach)</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>required_sample_size <span class="ot">&lt;-</span> <span class="fu">foreach</span>(<span class="at">i=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">.combine=</span><span class="st">&#39;c&#39;</span>, <span class="at">.packages =</span> <span class="st">&quot;fPASS&quot;</span>) <span class="sc">%do%</span> {</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>        mean_diff_fn <span class="ot">&lt;-</span> mean_diff_fn</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>        <span class="fu">PASS_Proj_Test_ufDA</span>(<span class="at">sample_size =</span> <span class="cn">NULL</span>, <span class="at">target.power =</span> target.power,</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>                            <span class="at">sig.level =</span> sig.level, <span class="at">nobs_per_subj =</span> nobs_per_subj,</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>                            <span class="at">obs.design =</span> obs.design, <span class="at">mean_diff_fnm =</span> <span class="st">&quot;mean_diff_fn&quot;</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>                            <span class="at">cov.type =</span> cov.type, <span class="at">cov.par =</span> cov.par,</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a>                            <span class="at">sigma2.e =</span> sigma2.e, <span class="at">missing_type =</span> missing_type,</span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a>                            <span class="at">missing_percent =</span> missing_percent, <span class="at">eval_SS =</span> eval_SS,</span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a>                            <span class="at">alloc.ratio =</span> alloc.ratio, <span class="at">fpca_method =</span> fpca_method,</span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a>                            <span class="at">mean_diff_add_args =</span> mean_diff_add_args,</span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a>                            <span class="at">fpca_optns =</span> fpca_optns, <span class="at">npc_to_use =</span> <span class="cn">NULL</span>,</span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a>                            <span class="at">nsim =</span> <span class="fl">1e3</span>)<span class="sc">$</span>required_SS</span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">quantile</span>(required_sample_size, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.25</span>,<span class="fl">0.5</span>,<span class="fl">0.75</span>), <span class="at">names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="co">#&gt;      25%      50%      75% </span></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="co">#&gt; 155.4684 162.3803 169.8949</span></span></code></pre></div>
+<p>We have intentionally left out the discussion of
+<code>npc_to_use</code> argument for the
+<code>fPASS::PASS_Proj_Test_ufDA()</code> function. The number of
+eigenfunction to use to compute the PASS is not before hand. Therefore,
+for a specified sampling design and covariance structure of the response
+trajectory, it is not possible to to provide an appropriate value unless
+the user has an substantial information about the eigencomponents
+before. This is where the function
+<code>fPASS::Extract_Eigencomp_fDA()</code> can assist. If we look at
+the help page of that function, you can notice that except for one
+argument, all of arguments of that function matches that of
+<code>fPASS::PASS_Proj_Test_ufDA()</code>. Therefore, for a specified
+sampling design and covariance parameter we can take a look the
+estimated eigenfunctions and eigenvalues to have a more informed
+decision how many eigencomponents to use to in the main function to
+conduct the PASS analysis. Here is an example of concering to in our
+case study.</p>
+</div>
+<div id="estimate-eigenfunctions-using-fpassfpca.sc-function" class="section level5">
+<h5>Estimate eigenfunctions using <code>fPASS::fpca.sc()</code>
+function</h5>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>fpca_method <span class="ot">&lt;-</span> <span class="st">&quot;fpca.sc&quot;</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="fu">library</span>(foreach)</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>eigenlist <span class="ot">&lt;-</span> <span class="fu">foreach</span>(<span class="at">i=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">.packages =</span> <span class="st">&quot;fPASS&quot;</span>) <span class="sc">%do%</span> {</span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>  mean_diff_fn <span class="ot">&lt;-</span> mean_diff_fn</span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>eigencomp <span class="ot">&lt;-</span> <span class="fu">Extract_Eigencomp_fDA</span>(<span class="at">nobs_per_subj =</span> nobs_per_subj,</span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a>                      <span class="at">obs.design =</span> obs.design, <span class="at">mean_diff_fnm =</span> mean_diff_fnm,</span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a>                      <span class="at">cov.type =</span> cov.type, <span class="at">cov.par =</span> cov.par,</span>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a>                      <span class="at">sigma2.e =</span> sigma2.e, <span class="at">missing_type =</span> missing_type,</span>
+<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a>                      <span class="at">missing_percent =</span> missing_percent, <span class="at">eval_SS =</span> eval_SS,</span>
+<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a>                      <span class="at">alloc.ratio =</span> alloc.ratio, <span class="at">fpca_method =</span> fpca_method,</span>
+<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a>                      <span class="at">mean_diff_add_args =</span> mean_diff_add_args,</span>
+<span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a>                      <span class="at">fpca_optns =</span> fpca_optns,</span>
+<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a>                      <span class="at">data.driven.scores =</span> <span class="cn">FALSE</span>) </span>
+<span id="cb17-15"><a href="#cb17-15" tabindex="-1"></a> eigencomp[<span class="fu">c</span>(<span class="st">&quot;working.grid&quot;</span>, <span class="st">&quot;est_eigenfun&quot;</span>, <span class="st">&quot;est_eigenval&quot;</span>)]</span>
+<span id="cb17-16"><a href="#cb17-16" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">lapply</span>(eigenlist, <span class="cf">function</span>(x) x<span class="sc">$</span>est_eigenval))</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="co">#&gt; [[1]]</span></span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="co">#&gt; [1] 19.876154  2.446943</span></span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a><span class="co">#&gt; [[2]]</span></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a><span class="co">#&gt; [1] 19.662736  2.346524</span></span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a><span class="co">#&gt; [[3]]</span></span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a><span class="co">#&gt; [1] 19.545208  2.308516</span></span></code></pre></div>
+<p>For a specified PVE of <span class="math inline">\(95\%\)</span>,
+<code>fPASS::fpca.sc()</code> function detects two leading eigenfunction
+with non-zero eigenvalues for the covariance structure in most of the
+cases. Next, we see what happens by using
+<code>face::face.sparse()</code> function for the same PVE The
+<code>face::face.sparse()</code> function is much slower than the
+<code>fPASS::fpca.sc()</code>, so we have kept <code>eval_SS</code>
+argument at <span class="math inline">\(500\)</span> to not
+significantly increase the run time of the vignette. The user are
+advised to use a large value of <code>eval_SS</code> in order to get
+high enough precision for the estimated eigenfunction.</p>
+</div>
+<div id="estimate-eigenfunctions-using-faceface.sparse-function" class="section level5">
+<h5>Estimate eigenfunctions using <code>face::face.sparse()</code>
+function</h5>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>fpca_method <span class="ot">&lt;-</span> <span class="st">&quot;face&quot;</span></span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="co"># Setting eval_SS to 500, specifically for </span></span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a><span class="co"># the face::face.sparse() function</span></span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a><span class="co"># to ensure that the vignette builds within</span></span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a><span class="co"># real time. The user must set a much larger value</span></span>
+<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a><span class="co"># of eval_SS e.g. ranging between 2000-5000, to ensure</span></span>
+<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a><span class="co"># enough precision accuracy for the eigenfunctions. </span></span>
+<span id="cb19-9"><a href="#cb19-9" tabindex="-1"></a>eval_SS  <span class="ot">&lt;-</span> <span class="dv">500</span> <span class="co"># increase it to 2000 for practical case</span></span>
+<span id="cb19-10"><a href="#cb19-10" tabindex="-1"></a></span>
+<span id="cb19-11"><a href="#cb19-11" tabindex="-1"></a><span class="fu">library</span>(foreach)</span>
+<span id="cb19-12"><a href="#cb19-12" tabindex="-1"></a><span class="co"># library(doParallel)</span></span>
+<span id="cb19-13"><a href="#cb19-13" tabindex="-1"></a><span class="co"># cl &lt;- makeCluster(detectCores()-1)</span></span>
+<span id="cb19-14"><a href="#cb19-14" tabindex="-1"></a><span class="co"># registerDoParallel(cl)</span></span>
+<span id="cb19-15"><a href="#cb19-15" tabindex="-1"></a>eigenlist <span class="ot">&lt;-</span> <span class="fu">foreach</span>(<span class="at">i=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">.packages =</span> <span class="st">&quot;fPASS&quot;</span>) <span class="sc">%do%</span> {</span>
+<span id="cb19-16"><a href="#cb19-16" tabindex="-1"></a>  mean_diff_fn <span class="ot">&lt;-</span> mean_diff_fn</span>
+<span id="cb19-17"><a href="#cb19-17" tabindex="-1"></a>eigencomp <span class="ot">&lt;-</span> <span class="fu">Extract_Eigencomp_fDA</span>(<span class="at">nobs_per_subj =</span> nobs_per_subj,</span>
+<span id="cb19-18"><a href="#cb19-18" tabindex="-1"></a>                      <span class="at">obs.design =</span> obs.design, <span class="at">mean_diff_fnm =</span> mean_diff_fnm,</span>
+<span id="cb19-19"><a href="#cb19-19" tabindex="-1"></a>                      <span class="at">cov.type =</span> cov.type, <span class="at">cov.par =</span> cov.par,</span>
+<span id="cb19-20"><a href="#cb19-20" tabindex="-1"></a>                      <span class="at">sigma2.e =</span> sigma2.e, <span class="at">missing_type =</span> missing_type,</span>
+<span id="cb19-21"><a href="#cb19-21" tabindex="-1"></a>                      <span class="at">missing_percent =</span> missing_percent, <span class="at">eval_SS =</span> eval_SS,</span>
+<span id="cb19-22"><a href="#cb19-22" tabindex="-1"></a>                      <span class="at">alloc.ratio =</span> alloc.ratio, <span class="at">fpca_method =</span> fpca_method,</span>
+<span id="cb19-23"><a href="#cb19-23" tabindex="-1"></a>                      <span class="at">mean_diff_add_args =</span> mean_diff_add_args,</span>
+<span id="cb19-24"><a href="#cb19-24" tabindex="-1"></a>                      <span class="at">fpca_optns =</span> fpca_optns,</span>
+<span id="cb19-25"><a href="#cb19-25" tabindex="-1"></a>                      <span class="at">data.driven.scores =</span> <span class="cn">FALSE</span>) </span>
+<span id="cb19-26"><a href="#cb19-26" tabindex="-1"></a> eigencomp[<span class="fu">c</span>(<span class="st">&quot;working.grid&quot;</span>, <span class="st">&quot;est_eigenfun&quot;</span>, <span class="st">&quot;est_eigenval&quot;</span>)]</span>
+<span id="cb19-27"><a href="#cb19-27" tabindex="-1"></a>}</span>
+<span id="cb19-28"><a href="#cb19-28" tabindex="-1"></a><span class="co"># stopCluster(cl)</span></span>
+<span id="cb19-29"><a href="#cb19-29" tabindex="-1"></a><span class="co"># matplot(eigencomp$working.grid, eigencomp$est_eigenfun, type=&quot;l&quot;, </span></span>
+<span id="cb19-30"><a href="#cb19-30" tabindex="-1"></a><span class="co">#         xlab = &quot;timepoints (scaled)&quot;, ylab = &quot;eigenfunctions&quot;)</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">lapply</span>(eigenlist, <span class="cf">function</span>(x) x<span class="sc">$</span>est_eigenval))</span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="co">#&gt; [[1]]</span></span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="co">#&gt; [1] 21.4722854  2.4345531  0.7338938</span></span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a><span class="co">#&gt; [[2]]</span></span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a><span class="co">#&gt; [1] 18.7551799  2.2752391  0.5402706</span></span>
+<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a><span class="co">#&gt; [[3]]</span></span>
+<span id="cb20-9"><a href="#cb20-9" tabindex="-1"></a><span class="co">#&gt; [1] 19.8852031  2.1993433  0.4408327</span></span></code></pre></div>
+<p>We notice that <code>face::face.sparse()</code> function is detecting
+three eigenfunction in most of the cases, for the same setup. However,
+the eigenvalue corresponding to the last eigenfunction seems to be
+small, and that is possibly the reason it was not detected by
+<code>fPASS::fpca.sc()</code> function. This provides us a more informed
+decision about the number of eigenfunctions to use. So, technically we
+should discard the last eigenfunction to compute the projection of mean
+difference onto the eigenfunctions, and use <code>npc_to_use = 2</code>
+in the <code>fPASS::PASS_Proj_Test_ufDA</code> function, so that the
+power function is not overinflated by detection of extra eigenfunctions.
+However, for better understanding of the reader, we will still use
+<code>npc_to_use = 3</code> for <code>fpca_method == &#39;face&#39;</code> to
+find out how the distribution of minimum sample size required is
+allowing an extra eigenfunction (with possibly zero eigenvalues) for
+<code>fpca_method == &#39;face&#39;</code>. The number of replication is kept at
+10, to ensure that the vignette runs within a reasonable amount of time,
+please increase it for more comprehensive understanding of the effect of
+estimating eigenfunctions on range of the minimum sample size
+required.</p>
+</div>
+<div id="distribution-of-minimum-sample-size-using-faceface.sparse-function-with-pre-specified-number-of-eigenfunction." class="section level5">
+<h5>Distribution of minimum sample size using
+<code>face::face.sparse()</code> function with pre-specified number of
+eigenfunction.</h5>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a>npc_to_use <span class="ot">&lt;-</span> <span class="dv">3</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a>fpca_method <span class="ot">&lt;-</span> <span class="st">&quot;face&quot;</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="fu">library</span>(foreach)</span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a>required_sample_size <span class="ot">&lt;-</span> <span class="fu">foreach</span>(<span class="at">i=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="at">.combine=</span><span class="st">&#39;c&#39;</span>, <span class="at">.packages =</span> <span class="st">&quot;fPASS&quot;</span>) <span class="sc">%do%</span> {</span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a>        mean_diff_fn <span class="ot">&lt;-</span> mean_diff_fn</span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a>        <span class="fu">PASS_Proj_Test_ufDA</span>(<span class="at">sample_size =</span> <span class="cn">NULL</span>, <span class="at">target.power =</span> target.power,</span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a>                            <span class="at">sig.level =</span> sig.level, <span class="at">nobs_per_subj =</span> nobs_per_subj,</span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a>                            <span class="at">obs.design =</span> obs.design, <span class="at">mean_diff_fnm =</span> mean_diff_fnm,</span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a>                            <span class="at">cov.type =</span> cov.type, <span class="at">cov.par =</span> cov.par,</span>
+<span id="cb22-10"><a href="#cb22-10" tabindex="-1"></a>                            <span class="at">sigma2.e =</span> sigma2.e, <span class="at">missing_type =</span> missing_type,</span>
+<span id="cb22-11"><a href="#cb22-11" tabindex="-1"></a>                            <span class="at">missing_percent =</span> missing_percent, <span class="at">eval_SS =</span> <span class="dv">500</span>,</span>
+<span id="cb22-12"><a href="#cb22-12" tabindex="-1"></a>                            <span class="at">alloc.ratio =</span> alloc.ratio, <span class="at">fpca_method =</span> fpca_method,</span>
+<span id="cb22-13"><a href="#cb22-13" tabindex="-1"></a>                            <span class="at">mean_diff_add_args =</span> mean_diff_add_args,</span>
+<span id="cb22-14"><a href="#cb22-14" tabindex="-1"></a>                            <span class="at">fpca_optns =</span> fpca_optns, <span class="at">npc_to_use =</span> npc_to_use,</span>
+<span id="cb22-15"><a href="#cb22-15" tabindex="-1"></a>                            <span class="at">nsim =</span> <span class="fl">1e3</span>)<span class="sc">$</span>required_SS</span>
+<span id="cb22-16"><a href="#cb22-16" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">quantile</span>(required_sample_size, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.25</span>,<span class="fl">0.5</span>,<span class="fl">0.75</span>), <span class="at">names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a><span class="co">#&gt;       25%       50%       75% </span></span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a><span class="co">#&gt;  64.72774  82.47207 240.18890</span></span></code></pre></div>
+<p>As expected, using a higher value of <code>npc_to_use</code> leads to
+over inflation of power, and consequently computed sample size is
+significantly less than which we obtained for
+<code>fpca_method = &#39;fpca.sc&#39;</code>. But, this comes at cost of over
+inflation of type I error of the test. Therefore, for a specified
+correlation structure of the response, we must take extra care to NOT
+use unnecessary eigenfunctions, to avoid the risk of inflation of
+inflated type I error.</p>
+</div>
+</div>
+<div id="missing-data" class="section level4">
+<h4>Missing data</h4>
+<p>Under the same setup, if We want to compute the minimum sample size
+required when the percentage of missing observation at each time point
+is around <span class="math inline">\(25\%\)</span>, then we can see the
+distribution of sample size required after running the function about
+100 times as follows.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a>missing_type <span class="ot">&lt;-</span> <span class="st">&quot;constant&quot;</span></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a>missing_percent <span class="ot">&lt;-</span> <span class="fl">0.25</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a>fpca_method <span class="ot">&lt;-</span> <span class="st">&quot;fpca.sc&quot;</span></span>
+<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>eval_SS  <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
+<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="#cb25-4" tabindex="-1"></a><span class="fu">library</span>(foreach)</span>
+<span id="cb25-5"><a href="#cb25-5" tabindex="-1"></a>required_sample_size <span class="ot">&lt;-</span> <span class="fu">foreach</span>(<span class="at">i=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">.combine=</span><span class="st">&#39;c&#39;</span>, <span class="at">.packages =</span> <span class="st">&quot;fPASS&quot;</span>) <span class="sc">%do%</span> {</span>
+<span id="cb25-6"><a href="#cb25-6" tabindex="-1"></a>        mean_diff_fn <span class="ot">&lt;-</span> mean_diff_fn</span>
+<span id="cb25-7"><a href="#cb25-7" tabindex="-1"></a>        <span class="fu">PASS_Proj_Test_ufDA</span>(<span class="at">sample_size =</span> <span class="cn">NULL</span>, <span class="at">target.power =</span> target.power,</span>
+<span id="cb25-8"><a href="#cb25-8" tabindex="-1"></a>                            <span class="at">sig.level =</span> sig.level, <span class="at">nobs_per_subj =</span> nobs_per_subj,</span>
+<span id="cb25-9"><a href="#cb25-9" tabindex="-1"></a>                            <span class="at">obs.design =</span> obs.design, <span class="at">mean_diff_fnm =</span> <span class="st">&quot;mean_diff_fn&quot;</span>,</span>
+<span id="cb25-10"><a href="#cb25-10" tabindex="-1"></a>                            <span class="at">cov.type =</span> cov.type, <span class="at">cov.par =</span> cov.par,</span>
+<span id="cb25-11"><a href="#cb25-11" tabindex="-1"></a>                            <span class="at">sigma2.e =</span> sigma2.e, <span class="at">missing_type =</span> missing_type,</span>
+<span id="cb25-12"><a href="#cb25-12" tabindex="-1"></a>                            <span class="at">missing_percent =</span> missing_percent, <span class="at">eval_SS =</span> eval_SS,</span>
+<span id="cb25-13"><a href="#cb25-13" tabindex="-1"></a>                            <span class="at">alloc.ratio =</span> alloc.ratio, <span class="at">fpca_method =</span> fpca_method,</span>
+<span id="cb25-14"><a href="#cb25-14" tabindex="-1"></a>                            <span class="at">mean_diff_add_args =</span> mean_diff_add_args,</span>
+<span id="cb25-15"><a href="#cb25-15" tabindex="-1"></a>                            <span class="at">fpca_optns =</span> fpca_optns, <span class="at">npc_to_use =</span> <span class="dv">2</span>, <span class="at">nsim =</span> <span class="fl">1e3</span>)<span class="sc">$</span>required_SS</span>
+<span id="cb25-16"><a href="#cb25-16" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="fu">quantile</span>(required_sample_size, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.25</span>,<span class="fl">0.5</span>,<span class="fl">0.75</span>), <span class="at">names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a><span class="co">#&gt;      25%      50%      75% </span></span>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a><span class="co">#&gt; 139.3561 147.7104 178.8790</span></span></code></pre></div>
+<p>The IQR of the distribution of the minimum sample sizes when the
+percentage of missing is as significant as <span class="math inline">\(25\%\)</span> is still about the same as that when
+there is no missing, i.e. <code>missing_type == &#39;nomiss&#39;</code> and
+<code>missing_percent = 0</code>. This reflects one of the biggest
+advantage of the projection-based test compared to traditional mixed
+model approaches, that as long as the missing percentage do not affect
+the estimation of the eigencomponents, the power of the test does not
+degrade with the increasing percentage of missing responses.</p>
+<p>Do try it out the same example in NCSS PASS software and check out
+the minimum sample size required for the test to achieve a power of
+<span class="math inline">\(80\%\)</span>, and how does the minimum
+sample size increases when you increase the missing percentage to <span class="math inline">\(25\%\)</span>, to get a fair comparison of the
+effectiveness of our procedure compared to traditional GEE type tests.
+To do this, go to NCSS PASS (2023) software, <em>GEE -&gt; GEE Tests for
+the Slope of Two groups in a Repeated Measures Design (Continuous
+Outcome) -&gt; Choose AR(1) proportional correlation structure and
+Number of measurement times as 6.</em></p>
+<p>We report the total computation time it needed create the entire
+vignette is approximately 3 minutes.</p>
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
